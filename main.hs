@@ -27,30 +27,12 @@ import qualified Data.Text as T
 import Data.Maybe
 
 
-data HelloWorld = HelloWorld { helloWorldStatic :: Static }
+data HelloWorld = HelloWorld {
+  helloWorldStatic :: Static,
+  handles :: (Handle, Handle, Handle)
+  }
 
-{- This is Bad, Dirty, Evil, Not Good, etc. Fix if time.  The
- - difficulty is that we need a way to share variables between
- - main and the handlers. I can't figure out a better way to do
- - that. 
- -
- - Reading material: http://www.haskell.org/haskellwiki/Top_level_mutable_state
- -}
-
--- TODO: This isn't HelloWorld any more, Dorthy
-
-hInGHCI :: IORef Handle
-{-# NOINLINE hInGHCI #-}
-hInGHCI = unsafePerformIO (newIORef undefined)
-
-hOutGHCI :: IORef Handle
-{-# NOINLINE hOutGHCI #-}
-hOutGHCI = unsafePerformIO (newIORef undefined)
-
-hErrGHCI :: IORef Handle
-{-# NOINLINE hErrGHCI #-}
-hErrGHCI = unsafePerformIO (newIORef undefined)
-
+-- TODO: locks are bad MKay!
 lockGHCI :: MVar Bool
 {-# NOINLINE lockGHCI #-}
 lockGHCI = unsafePerformIO (newMVar True)
@@ -98,13 +80,15 @@ postGHCIR = do
   (postTuples, _) <- runRequestBody
   let content = unescape $ T.unpack (snd $ postTuples !! 0)
 
-  result <- liftIO $ queryGHCI content
+  y <- getYesod
+  result <- liftIO $ queryGHCI (handles y) content
 
   defaultLayout [whamlet|#{result}|]
 
 getHomeR :: Handler RepHtml
 getHomeR = do
-  result <- liftIO $ queryGHCI ":t 5.0\n"
+  y <- getYesod
+  result <- liftIO $ queryGHCI (handles y) ":t 5.0\n"
   defaultLayout [whamlet|
 <html>
   <head>
@@ -268,9 +252,9 @@ parseErrors str =
             2 -> go str first (second ++ [s]) seen
             _ -> go str first second seen
 
-queryGHCI :: String -> IO String
-queryGHCI input | last input /= '\n' = queryGHCI $ input ++ "\n" -- Append a newline character to the end of input
-queryGHCI input = 
+queryGHCI :: (Handle, Handle, Handle) -> String -> IO String
+queryGHCI handles  input | last input /= '\n' = queryGHCI handles $ input ++ "\n" -- Append a newline character to the end of input
+queryGHCI (hin, hout, herr) input = 
   
   -- TODO: Prevent this from running 
   -- Handle Hoogle queries
@@ -287,9 +271,6 @@ queryGHCI input =
   -- If "No suggestions", then don't send it in down and if it already ends with '\n', don't do anything
   
   _ <- takeMVar lockGHCI
-  hin <- readIORef hInGHCI
-  hout <- readIORef hOutGHCI
-  herr <- readIORef hErrGHCI
 
   errors <- if "data " `isPrefixOf` input
               then do
@@ -375,13 +356,9 @@ main = do
   hPutStr hin ":t 1\n"
   readIntro hout
 
-  writeIORef hInGHCI hin
-  writeIORef hOutGHCI hout
-  writeIORef hErrGHCI herr
-
   s <- staticDevel "static"
 
-  warpDebug 3000 $ HelloWorld s
+  warpDebug 3000 $ HelloWorld s (hin, hout, herr)
 
 
 --- haddockParser
