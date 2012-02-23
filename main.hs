@@ -64,7 +64,6 @@ mkYesod "HelloWorld" [parseRoutes|
 |]
 
 instance Yesod HelloWorld where
-    approot _ = ""
 
 tempFileName :: String
 tempFileName = "commandsEntered.hs"
@@ -109,38 +108,26 @@ getHomeR = do
   defaultLayout [whamlet|
 <html>
   <head>
-    <title> ghci in a new dress </title>
+    <title> ghci in a new dress
     <link rel="stylesheet" type="text/css" href="static/style.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"> </script>
-    <script src="static/main.js"> </script>
-  </head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js">
+    <script src="static/main.js">
   <body>
-    <ul id="autocomplete"> 
-    </ul>
+    <ul id="autocomplete">
     <div id="typeannotations">
-    </div>
     <div id="calltips">
-    </div>
     <div id="program">
       <div id="console">
         <div class="input" id="active">
           <span id="prompt">
-            $
-          </span>
+            \$
           <span id="content">
-          </span>
-          <span id="cursor">_</span>
-        </div>
+          <span id="cursor">_
         <div id="sidebar">
           <h3>
             Inspector
-          </h3>
           <ul id="sidelist">
-          </ul>
-      </div>
-    </div>
-  </body>
-</html>|]
+|]
 
 readIntro hout = do
   line <- hGetLine hout
