@@ -10,7 +10,7 @@ $(function() {
   var showing_calltips = false;
   var calltips_word = "";
 
-  var keywords = ["as", "case,", "class", "data", "data", "default", "deriving", "deriving", "do", "forall", "foreign", "hiding", "if,", "import", "infix,", "instance", "let", "mdo", "module", "newtype", "proc", "qualified", "rec", "type", "type", "type", "where", "then", "else", "infixl", "infixr", "in" ];
+  var keywords = ["as", "case,", "class", "data", "default", "deriving", "deriving", "do", "forall", "foreign", "hiding", "if,", "import", "infix,", "instance", "let", "mdo", "module", "newtype", "proc", "qualified", "rec", "type", "type", "type", "where", "then", "else", "infixl", "infixr", "in" ];
 
   // Debugging utilities
   var log = function(){ console.log.apply(console, arguments)};
@@ -355,26 +355,26 @@ $(function() {
    * all and is instead just AJAX. */
   var add_to_console = function(value) {
     var $content = $("#active #content");
-    var old_html = $content.html();
-    var new_html;
+    var old_txt = $content.text();
+    var new_txt;
 
     if (value === ENTER) {
-      add_output_line(old_html);
+      add_output_line(old_txt);
       showing_calltips = false;
       return;
     } else if (value === BACKSPACE) {
-      if (old_html.length == 0) {
+      if (old_txt.length == 0) {
         return;
       }
 
-      new_html = old_html.slice(0, old_html.length - 1);
+      new_txt = old_txt.slice(0, old_txt.length - 1);
     } else if (value === TAB) { 
       autocomplete();
     } else {
-      new_html = old_html + value;
+      new_txt = old_txt + value;
     }
 
-    $content.html(new_html);
+    $content.text(new_txt);
     move_autocomplete();
   }
 
@@ -382,19 +382,23 @@ $(function() {
   $(document).bind('keydown', function(e) {
     if (e.which === BACKSPACE) {
       add_to_console(BACKSPACE);
-      e.preventDefault();
-      return false;
+		return false;
     } else if (e.which === ENTER) {
       add_to_console(ENTER);
+		return false;
     } else if (e.which === TAB) {
-      e.preventDefault();
       autocomplete();
+		return false;
     }
   });
 
+  /* Handle key input */
   $(document).bind('keypress', function(e) {
-    key = String.fromCharCode(e.which);
-    add_to_console(key);
+    if (!(e.which === BACKSPACE || e.which === ENTER || e.which === TAB || e.metaKey || e.ctrlKey)) {
+		key = String.fromCharCode(e.which);
+		add_to_console(key);
+		return false;
+	 }
   });
 
   var show_calltips = function() {

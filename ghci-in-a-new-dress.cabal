@@ -23,9 +23,12 @@ source-repository head
 --  tag: 
 
 Executable ghci-in-a-new-dress
-  Main-Is:         main.hs
+  Main-Is:         Main.hs
   Hs-Source-Dirs:  .
-  Other-Modules:
+  Other-Modules:   GHCiYesod,
+                   NewGHCi,
+                   Tools,
+                   Utils
   Build-depends:     base
                    , text
                    , bytestring
@@ -36,4 +39,5 @@ Executable ghci-in-a-new-dress
                    , yesod
                    , yesod-core
                    , yesod-static
-  Ghc-options:
+  Ghc-options: -Wall -Werror
+
