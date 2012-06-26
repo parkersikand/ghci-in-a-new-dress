@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, TemplateHaskell, TypeFamilies, QuasiQuotes #-}
+{-# LANGUAGE OverloadedStrings, MultiParamTypeClasses, TemplateHaskell, TypeFamilies, QuasiQuotes #-}
 module GHCiYesod where
 
 import qualified Data.Text as T (unpack)

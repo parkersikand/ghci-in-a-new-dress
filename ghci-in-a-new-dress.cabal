@@ -27,7 +27,6 @@ Executable ghci-in-a-new-dress
   Hs-Source-Dirs:  .
   Other-Modules:   GHCiYesod,
                    NewGHCi,
-                   Tools,
                    Utils
   Build-depends:     base
                    , text

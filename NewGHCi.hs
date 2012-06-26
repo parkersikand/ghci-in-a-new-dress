@@ -2,11 +2,10 @@
 module NewGHCi where
 
 import Control.Concurrent (MVar, newMVar, putMVar, takeMVar)
-import Data.List (isInfixOf, isPrefixOf)
+import Data.List (isInfixOf)
 import System.IO (Handle, hGetChar, hGetLine, hPutStr, hReady)
 import System.IO.Unsafe (unsafePerformIO)
 
-import Tools
 import Utils
 
 -- TODO: locks are bad MKay!
@@ -15,31 +14,20 @@ lockGHCI :: MVar Bool
 lockGHCI = unsafePerformIO (newMVar True)
 
 ghciPath :: FilePath
-ghciPath = "/home/davidt/Software/ghc-ghci/bin/ghci"
+ghciPath = "/home/davidt/Ghc/ghci-pkg/dist/build/ghci-safe/ghci-safe"
 
 ghciArgs :: [String]
-ghciArgs = ["-XSafe", "-fpackage-trust", "-distrust-all-packages", "-trust base"]
+ghciArgs = []
 
 sentinel :: String
 sentinel = "1234567890"
 
 queryGHCI :: (Handle, Handle, Handle) -> String -> IO String
-queryGHCI h input | last input /= '\n'           = queryGHCI h $ input ++ "\n"
-queryGHCI _ input | ":doc" `isPrefixOf` input    = queryHaddock input
-queryGHCI _ input | ":hoogle" `isPrefixOf` input = queryHoogle input
+queryGHCI h input | last input /= '\n' = queryGHCI h $ input ++ "\n"
+
 queryGHCI (hin, hout, herr) input = do
     -- Lock this function. Only 1 person can query ghci at a time.
     _ <- takeMVar lockGHCI
-
-    -- Get Hlint suggests only if it's Haskell code and not an interpretor
-    -- command If "No suggestions", then don't send it in down and if it already
-    -- ends with '\n', don't do anything
-    hlint <- if ":" `isPrefixOf` input
-              then return ""
-              else hlintCheck input
-    let hlintSugg = if ":" `isPrefixOf` input
-                      then hlint
-                      else hlint ++ "\n"
   
     hPutStr hin input
 
@@ -57,7 +45,7 @@ queryGHCI (hin, hout, herr) input = do
     putMVar lockGHCI True
 
     if trimWhitespace errors == "" 
-        then return $ hlintSugg ++ output
+        then return output
         else return $ "ERR: " ++ show (parseErrors errors)
 
 getErrors :: Handle -> IO String

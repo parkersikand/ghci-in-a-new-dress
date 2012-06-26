@@ -1,6 +1,5 @@
 module Main where
 
-import Data.Maybe
 import System.IO
 import System.Process
 
@@ -22,10 +21,7 @@ main = do
     hSetBuffering herr NoBuffering
 
     hPutStr hin ":t 1\n"
-    hPutStr hin "import GHC.GHCi\n"
-    hPutStr hin ":runmonad NoIO\n"
-    intro <- hGetBlockInitial hout
-    putStrLn intro 
+    _ <- hGetBlockInitial hout
 
     s <- staticDevel "static"
 
